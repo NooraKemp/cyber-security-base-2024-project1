@@ -1,5 +1,4 @@
 
-__pycache__
 
 # Flaw 4: Cryptographic Failures. 
 # Fix: secret key should be in .env file and .env added to .gitignore file.
