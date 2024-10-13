@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <Title>Notes</Title>
+    {% load static %}
+    <link rel='stylesheet' type='text/css' href="{% static 'notes/style.css' %}">
+    <script>
+      window.onload = function() {
+        var noteText = document.querySelector('.note-text')
+        var charCount = document.createElement('div')
+        charCount.id = 'charCount'
+        charCount.textContent = '0 / 250'
+        noteText.parentNode.insertBefore(charCount, noteText.nextSibling)
+
+        noteText.addEventListener("input", function() {
+          var text = noteText.value
+          var length = text.length
+          charCount.textContent = length + " / 250"
+        })
+      }
+    </script>
+  </head>
+
+  <body>
+    <header>
+      <p class='header-text'>NOTES</p>
+      <nav class="nav-bar">
+        <ul class="nav-list">
+          <li>Logged in: <b>{{ user }}</b></li>
+          <li> 
+            <form action='/logout/' method='POST'>
+              {% csrf_token %}
+              <input type='submit' value='Logout' class='button'/>
+            </form>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <div class='container'>
+      <h2>Your notes</h2>
+      {% if notes %}
+        {% for note in notes %}
+          <div class='note-row'>
+            <div class='note'>{{ note.note }}</div>
+            <form action='/deletenote' method='POST'>
+              {% csrf_token %}
+              <input type="hidden" name="noteId" value="{{ note.id }}">
+              <input type="submit" value='Delete note' class='button'>
+            </form>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No notes.</p>
+      {% endif %}
+    </div>
+
+    <div class='container'>
+      <h2>Add note</h2>
+      <div class='note-box'>
+        <!--Flaw 1 CSRF: {% csrf_token %} missing and GET request
+            Flaw 3 Broken access control: User parameter can be modified in URL -->
+        <form action='/addnote' method='GET'>
+          <input type="hidden" name="user" value="{{ user }}">
+          <textarea name='noteText' rows='4' cols=10 class='note-text' required minlength='1' maxlength='250'></textarea>
+          <div class='add-button'>
+            <input type='submit' value='Add note' class='button'>
+          </div>
+        </form>
+
+        <!-- Flaw 1 fix: Add {% csrf_token %} and use POST request instead of GET
+             Flaw 3 fix: Remove <input type="hidden" name="user" value="{{ user }}">
+        <form action='/addnote' method='POST'></form>
+          {% csrf_token %}
+          <textarea name='noteText' rows='4' cols=10 class='note-text' required minlength='1' maxlength='250'></textarea>
+          <div class='add-button'>
+            <input type='submit' value='Add note' class='button'>
+          </div>
+        </form> -->
+
+      </div>
+    </div>
+  </body>
+</html>
